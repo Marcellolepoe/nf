@@ -49,7 +49,7 @@ const App = () => {
 
       {/* Header */}
       <header style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '1.2rem', fontWeight: '300', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent-gold)' }}>Antigravity</h1>
+        <h1 style={{ fontSize: '1.2rem', fontWeight: '300', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent-gold)' }}>NF</h1>
         <button onClick={() => setView('stats')} style={{ color: 'var(--text-secondary)' }}><BarChart2 size={20} /></button>
       </header>
 
