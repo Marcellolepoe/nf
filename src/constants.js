@@ -1,3 +1,14 @@
+export const IDENTITY_PROMISE = {
+  title: "The Man of the New Reality",
+  manifesto: [
+    "I am a man of radical discipline. I do not negotiate with my lower self.",
+    "I am in control of my attention, my biology, and my future.",
+    "I am fighting for the woman I will one day marry and the family I will lead.",
+    "I do not trade my destiny for 30 seconds of digital illusion.",
+    "I am manifesting a life of peak energy, absolute focus, and deep self-respect."
+  ]
+};
+
 export const WARFARE_STEPS = [
   {
     id: 'w1',
@@ -52,26 +63,36 @@ export const PANIC_TECHNIQUES = [
     scripture: "Be still, and know that I am God. (Psalm 46:10)"
   },
   {
-    name: "The 5-Second Rule",
-    duration: 5,
+    name: "Headstart Mode",
+    duration: 300,
     steps: [
-      "Count 5 - 4 - 3 - 2 - 1.",
-      "On 1, leave the room completely.",
-      "Go to a public area or a bathroom."
+      "You are wasting time fighting shadows. Get a headstart on the day instead.",
+      "Leave the room immediately.",
+      "Spend the next 5 minutes on your most difficult work task or physical exercise.",
+      "Win back the time you almost lost."
     ],
-    scripture: "Submit yourselves therefore to God. Resist the devil, and he will flee from you. (James 4:7)"
+    scripture: "Redeeming the time, because the days are evil. (Ephesians 5:16)"
   },
   {
-    name: "HALT Check",
-    duration: 30,
+    name: "Loneliness Combat",
+    duration: 60,
     steps: [
-      "Are you HUNGRY? (Eat something healthy)",
-      "Are you ANGRY? (Write down what's bothering you)",
-      "Are you LONELY? (Call or text a real friend)",
-      "Are you TIRED? (Close your eyes for 10 minutes - no phone)"
+      "Loneliness is an emotion, not a command to relapse.",
+      "Text or call someone you respect right now (don't mention the urge, just connect).",
+      "Real connection kills the need for fake fantasy."
     ],
-    scripture: "Create in me a clean heart, O God; and renew a right spirit within me. (Psalm 51:10)"
+    scripture: "Two are better than one... for if they fall, the one will lift up his fellow. (Ecclesiastes 4:9-10)"
   }
+];
+
+export const DAILY_QUOTES = [
+  "Discipline is choosing between what you want now and what you want most.",
+  "He who conquers others is strong; he who conquers himself is mighty.",
+  "The pain of discipline is far less than the pain of regret.",
+  "You cannot find peace by avoiding life.",
+  "Strength does not come from winning. Your struggles develop your strengths.",
+  "Be the man you would want your future daughter to marry.",
+  "Your future self is either thanking you or cursing you right now."
 ];
 
 export const VERSES = [
