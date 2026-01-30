@@ -1,42 +1,76 @@
-export const MORNING_PROMPTS = [
-  {
-    id: 'm1',
-    question: "Why does staying in bed feel safer than waking up right now?",
-    theory: "Habit & Motivation",
-    placeholder: "Be honest with yourself..."
-  },
-  {
-    id: 'm2',
-    question: "What is the very first real-world task you are avoiding by scrolling?",
-    theory: "Escapism",
-    placeholder: "Name the task..."
-  },
-  {
-    id: 'm3',
-    question: "How will your energy level change 30 minutes from now if you choose discipline over dopamine?",
-    theory: "Energy & Self-Control",
-    placeholder: "Visualize the difference..."
-  }
-];
-
-export const WORK_PROMPTS = [
+export const WARFARE_STEPS = [
   {
     id: 'w1',
-    question: "What is the specific 'rut' or difficult task you are facing currently?",
-    theory: "Escape from Rut",
-    placeholder: "Describe the wall you hit..."
+    type: 'confrontation',
+    title: "The Identity Choice",
+    question: "Who is in control right now? Your biological urges or your future self?",
+    options: [
+      { text: "My biological urges (The Slave)", next: 'w2_slave' },
+      { text: "My future self (The Master)", next: 'w2_master' }
+    ]
   },
   {
-    id: 'w2',
-    question: "Are you trying to 'be liked' by your future self, or just trying to feel good in the next 5 minutes?",
-    theory: "Validation & Reality",
-    placeholder: "Think about your image of yourself..."
+    id: 'w2_slave',
+    type: 'text',
+    title: "Reality Check",
+    question: "You've admitted to being a slave. What is the precise thing you are losing right now for 30 seconds of pixels?",
+    theory: "Consequence Awareness",
+    placeholder: "Name the cost (Self-respect, energy, future marriage...)"
+  },
+  {
+    id: 'w2_master',
+    type: 'action',
+    title: "Action Signal",
+    question: "If the Master is in control, prove it. Stand up and do 10 pushups or put cold water on your face. Did you do it?",
+    options: [
+      { text: "YES - I AM IN CONTROL", next: 'w3' },
+      { text: "No, I'm hesitating", next: 'w2_slave' }
+    ]
   },
   {
     id: 'w3',
-    question: "Does this fantasy help you become the monogamous man you want to be in a future relationship?",
-    theory: "Fantasy vs. Reality",
-    placeholder: "Recall your rationale for women..."
+    type: 'impact',
+    title: "The Vision",
+    question: "Imagine the woman you will marry. If she were standing behind you right now, would she be proud of this moment?",
+    options: [
+      { text: "She would be proud", next: 'final' },
+      { text: "No... she wouldn't", next: 'w2_slave' }
+    ]
+  }
+];
+
+export const PANIC_TECHNIQUES = [
+  {
+    name: "Urge Surfing",
+    duration: 120,
+    steps: [
+      "Find where the urge lives in your body (Stomach? Chest?)",
+      "Do NOT fight it. Just watch it like a wave.",
+      "Breathe into that spot. Don't act. Just observe.",
+      "The wave will peak, then it WILL subside."
+    ],
+    scripture: "Be still, and know that I am God. (Psalm 46:10)"
+  },
+  {
+    name: "The 5-Second Rule",
+    duration: 5,
+    steps: [
+      "Count 5 - 4 - 3 - 2 - 1.",
+      "On 1, leave the room completely.",
+      "Go to a public area or a bathroom."
+    ],
+    scripture: "Submit yourselves therefore to God. Resist the devil, and he will flee from you. (James 4:7)"
+  },
+  {
+    name: "HALT Check",
+    duration: 30,
+    steps: [
+      "Are you HUNGRY? (Eat something healthy)",
+      "Are you ANGRY? (Write down what's bothering you)",
+      "Are you LONELY? (Call or text a real friend)",
+      "Are you TIRED? (Close your eyes for 10 minutes - no phone)"
+    ],
+    scripture: "Create in me a clean heart, O God; and renew a right spirit within me. (Psalm 51:10)"
   }
 ];
 
@@ -50,22 +84,18 @@ export const VERSES = [
     source: "2 Timothy 1:7"
   },
   {
-    text: "Watch and pray so that you will not fall into temptation. The spirit is willing, but the flesh is weak.",
-    source: "Matthew 26:41"
-  },
-  {
     text: "I can do all things through Christ who strengthens me.",
     source: "Philippians 4:13"
   },
   {
-    text: "But the fruit of the Spirit is love, joy, peace, forbearance, kindness, goodness, faithfulness, gentleness and self-control. Against such things there is no law.",
-    source: "Galatians 5:22-23"
+    text: "Submit yourselves therefore to God. Resist the devil, and he will flee from you.",
+    source: "James 4:7"
   }
 ];
 
 export const RATIONALE = [
-  "I want to be monogamous and respectful in my future relationships.",
-  "Fapping causes low energy and brain fog throughout my day.",
-  "I want to prove to myself that I have self-control.",
-  "Fantasy is an escape from the reality I am meant to build."
+  "Future Monogamy & Respect",
+  "High Energy & Focus",
+  "Radical Self-Respect",
+  "Living in Reality, not Fantasy"
 ];

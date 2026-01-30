@@ -1,248 +1,282 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Briefcase, ChevronRight, ChevronLeft, CheckCircle, Home, BarChart2, BookOpen, Quote } from 'lucide-react';
-import { MORNING_PROMPTS, WORK_PROMPTS, VERSES, RATIONALE } from './constants';
+import {
+  ShieldAlert,
+  Flame,
+  Skull,
+  Sword,
+  Timer,
+  RefreshCw,
+  ChevronRight,
+  ChevronLeft,
+  Heart,
+  Zap,
+  Play,
+  CheckCircle2,
+  AlertTriangle
+} from 'lucide-react';
+import { WARFARE_STEPS, PANIC_TECHNIQUES, VERSES, RATIONALE } from './constants';
 
 const App = () => {
-  const [view, setView] = useState('home'); // home, morning, work, summary, stats
-  const [currentStep, setCurrentStep] = useState(0);
+  const [view, setView] = useState('home'); // home, warfare, panic, summary, relapse
+  const [streak, setStreak] = useState(0); // in seconds
+  const [lastRelapse, setLastRelapse] = useState(null);
+  const [currentStepId, setCurrentStepId] = useState('w1');
+  const [panicIndex, setPanicIndex] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [verse, setVerse] = useState({ text: '', source: '' });
+  const [verse, setVerse] = useState(VERSES[0]);
+
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    // Pick a random verse on load
-    const randomVerse = VERSES[Math.floor(Math.random() * VERSES.length)];
-    setVerse(randomVerse);
-  }, [view]);
-
-  const activePrompts = view === 'morning' ? MORNING_PROMPTS : WORK_PROMPTS;
-
-  const handleNext = () => {
-    if (currentStep < activePrompts.length - 1) {
-      setCurrentStep(currentStep + 1);
+    const saved = localStorage.getItem('nf_last_relapse');
+    if (saved) {
+      setLastRelapse(new Date(saved));
     } else {
-      // Save data locally
-      const entry = {
-        date: new Date().toISOString(),
-        type: view,
-        answers: answers
-      };
-      const history = JSON.parse(localStorage.getItem('nf_history') || '[]');
-      history.push(entry);
-      localStorage.setItem('nf_history', JSON.stringify(history));
-      setView('summary');
+      const now = new Date();
+      setLastRelapse(now);
+      localStorage.setItem('nf_last_relapse', now.toISOString());
+    }
+
+    setVerse(VERSES[Math.floor(Math.random() * VERSES.length)]);
+
+    timerRef.current = setInterval(() => {
+      if (lastRelapse) {
+        const diff = Math.floor((new Date() - new Date(lastRelapse)) / 1000);
+        setStreak(diff);
+      }
+    }, 1000);
+
+    return () => clearInterval(timerRef.current);
+  }, [lastRelapse]);
+
+  const formatStreak = (s) => {
+    const days = Math.floor(s / (24 * 3600));
+    const hours = Math.floor((s % (24 * 3600)) / 3600);
+    const mins = Math.floor((s % 3600) / 60);
+    const secs = s % 60;
+    return { days, hours, mins, secs };
+  };
+
+  const handleRelapse = () => {
+    if (window.confirm("Are you sure? This will kill your current streak and all the energy you've built.")) {
+      const now = new Date();
+      setLastRelapse(now);
+      localStorage.setItem('nf_last_relapse', now.toISOString());
+      setView('home');
     }
   };
 
-  const updateAnswer = (id, val) => {
-    setAnswers({ ...answers, [id]: val });
-  };
+  const { days, hours, mins, secs } = formatStreak(streak);
 
-  const reset = () => {
-    setView('home');
-    setCurrentStep(0);
-    setAnswers({});
-  };
+  const currentStep = WARFARE_STEPS.find(s => s.id === currentStepId) || WARFARE_STEPS[0];
 
   return (
-    <div className="app-container" style={{ maxWidth: '480px', margin: '0 auto', padding: '20px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ maxWidth: '480px', margin: '0 auto', padding: '20px', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#000', color: '#fff' }}>
 
-      {/* Header */}
-      <header style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '1.2rem', fontWeight: '300', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--accent-gold)' }}>NF</h1>
-        <button onClick={() => setView('stats')} style={{ color: 'var(--text-secondary)' }}><BarChart2 size={20} /></button>
+      {/* Header / HUD */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShieldAlert size={20} color="#ff4444" />
+          <span style={{ fontWeight: '800', letterSpacing: '3px' }}>NF COMMAND</span>
+        </div>
+        <button onClick={() => setView('panic')} style={{ background: '#ff4444', color: '#fff', padding: '6px 12px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '900' }}>PANIC</button>
       </header>
 
       <AnimatePresence mode="wait">
         {view === 'home' && (
-          <motion.div
-            key="home"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="view"
-          >
-            <div className="glass" style={{ padding: '24px', borderRadius: '20px', marginBottom: '24px' }}>
-              <Quote size={20} style={{ color: 'var(--accent-gold)', marginBottom: '12px' }} />
-              <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontStyle: 'italic', marginBottom: '12px', color: '#e2e8f0' }}>"{verse.text}"</p>
-              <p style={{ color: 'var(--accent-gold)', fontSize: '0.8rem', textAlign: 'right', letterSpacing: '1px' }}>— {verse.source}</p>
+          <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            {/* Streak Counter */}
+            <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '10px' }}>
+                <div className="streak-unit">
+                  <div className="num">{days}</div>
+                  <div className="label">DAYS</div>
+                </div>
+                <div className="streak-unit">
+                  <div className="num">{hours}</div>
+                  <div className="label">HRS</div>
+                </div>
+                <div className="streak-unit">
+                  <div className="num">{mins}</div>
+                  <div className="label">MINS</div>
+                </div>
+              </div>
+              <div style={{ color: '#ffcc00', fontSize: '0.8rem', letterSpacing: '2px', fontWeight: 'bold' }}>
+                CURRENT POWER LEVEL
+              </div>
             </div>
 
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '20px', fontWeight: '500' }}>Choose Your Path</h2>
-
-            <button
-              onClick={() => setView('morning')}
-              className="glass"
-              style={{ width: '100%', padding: '24px', borderRadius: '16px', display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '20px', textAlign: 'left' }}
-            >
-              <div style={{ background: 'var(--accent-gold-soft)', padding: '12px', borderRadius: '12px', color: 'var(--accent-gold)' }}><Sun size={24} /></div>
-              <div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>Morning Watch</div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Break the scrolling habit. Get out of bed.</div>
+            {/* Rationale HUD */}
+            <div style={{ background: '#111', border: '1px solid #333', borderRadius: '12px', padding: '20px', marginBottom: '30px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px', color: '#666' }}>
+                <Timer size={16} />
+                <span style={{ fontSize: '0.7rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Mission Objectives</span>
               </div>
-              <ChevronRight size={20} style={{ marginLeft: 'auto', color: 'var(--text-tertiary)' }} />
-            </button>
-
-            <button
-              onClick={() => setView('work')}
-              className="glass"
-              style={{ width: '100%', padding: '24px', borderRadius: '16px', display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '20px', textAlign: 'left' }}
-            >
-              <div style={{ background: 'var(--accent-blue-soft)', padding: '12px', borderRadius: '12px', color: 'var(--accent-blue)' }}><Briefcase size={24} /></div>
-              <div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>Work Anchor</div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Push through the rut. Choose reality.</div>
-              </div>
-              <ChevronRight size={20} style={{ marginLeft: 'auto', color: 'var(--text-tertiary)' }} />
-            </button>
-
-            <div style={{ marginTop: '20px' }}>
-              <p style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>Your Rationale</p>
               {RATIONALE.map((r, i) => (
-                <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                  <div style={{ color: 'var(--accent-gold)', marginTop: '4px' }}>•</div>
-                  <div>{r}</div>
+                <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '12px', fontSize: '0.9rem' }}>
+                  <div style={{ color: '#ffcc00' }}>⚔️</div>
+                  <div style={{ color: '#ccc' }}>{r}</div>
                 </div>
               ))}
             </div>
+
+            {/* Main Action */}
+            <button
+              onClick={() => { setView('warfare'); setCurrentStepId('w1'); }}
+              style={{
+                width: '100%',
+                padding: '24px',
+                background: '#fff',
+                color: '#000',
+                borderRadius: '12px',
+                fontWeight: '900',
+                fontSize: '1.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '15px',
+                marginBottom: '20px'
+              }}
+            >
+              <Sword size={24} /> ENGAGE PROTOCOL
+            </button>
+
+            <button
+              onClick={handleRelapse}
+              style={{ width: '100%', padding: '15px', border: '1px solid #333', color: '#666', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}
+            >
+              I FAILED (KILL STREAK)
+            </button>
           </motion.div>
         )}
 
-        {(view === 'morning' || view === 'work') && (
-          <motion.div
-            key="prompts"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="view"
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '30px' }}>
-              <button onClick={() => setView('home')} style={{ color: 'var(--text-secondary)' }}><ChevronLeft size={24} /></button>
-              <div style={{ height: '4px', flex: 1, background: 'var(--bg-tertiary)', borderRadius: '2px' }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${((currentStep + 1) / activePrompts.length) * 100}%` }}
-                  style={{ height: '100%', background: view === 'morning' ? 'var(--accent-gold)' : 'var(--accent-blue)', borderRadius: '2px' }}
-                />
+        {view === 'warfare' && (
+          <motion.div key="warfare" initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -50, opacity: 0 }}>
+            <div style={{ marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button onClick={() => setView('home')} style={{ color: '#666' }}><ChevronLeft size={24} /></button>
+              <span style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#ffcc00' }}>{currentStep.title}</span>
+            </div>
+
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '40px', lineHeight: '1.2', fontWeight: '800' }}>{currentStep.question}</h2>
+
+            {currentStep.type === 'confrontation' || currentStep.type === 'action' || currentStep.type === 'impact' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {currentStep.options.map((opt, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      if (opt.next === 'final') setView('summary');
+                      else setCurrentStepId(opt.next);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '20px',
+                      background: opt.text.includes('YES') || opt.text.includes('future') ? '#fff' : '#111',
+                      color: opt.text.includes('YES') || opt.text.includes('future') ? '#000' : '#ff4444',
+                      borderRadius: '8px',
+                      textAlign: 'left',
+                      fontWeight: 'bold',
+                      border: opt.text.includes('YES') || opt.text.includes('future') ? 'none' : '1px solid #ff4444'
+                    }}
+                  >
+                    {opt.text}
+                  </button>
+                ))}
               </div>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{currentStep + 1}/{activePrompts.length}</span>
+            ) : (
+              <div>
+                <textarea
+                  placeholder={currentStep.placeholder}
+                  onChange={(e) => setAnswers({ ...answers, [currentStep.id]: e.target.value })}
+                  style={{ width: '100%', height: '150px', background: '#111', border: '1px solid #333', color: '#fff', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}
+                />
+                <button
+                  disabled={!answers[currentStep.id]}
+                  onClick={() => setCurrentStepId('w3')} // Simple flow for now
+                  style={{ width: '100%', padding: '20px', background: '#fff', color: '#000', borderRadius: '8px', fontWeight: 'bold', opacity: answers[currentStep.id] ? 1 : 0.5 }}
+                >
+                  CONFRONT REALITY
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {view === 'panic' && (
+          <motion.div key="panic" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+            <div style={{ color: '#ff4444', marginBottom: '30px', textAlign: 'center' }}>
+              <AlertTriangle size={60} style={{ margin: '0 auto 10px' }} />
+              <h2 style={{ fontWeight: '900', fontSize: '2rem' }}>EMERGENCY OVERRIDE</h2>
             </div>
 
-            <div style={{ marginBottom: '40px' }}>
-              <span style={{ color: view === 'morning' ? 'var(--accent-gold)' : 'var(--accent-blue)', fontSize: '0.75rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1.5px' }}>{activePrompts[currentStep].theory}</span>
-              <h2 style={{ fontSize: '1.6rem', marginTop: '12px', lineHeight: '1.4', fontWeight: '400' }}>{activePrompts[currentStep].question}</h2>
+            <div className="glass" style={{ padding: '24px', borderRadius: '16px', background: '#111', border: '1px solid #ff4444' }}>
+              <h3 style={{ color: '#ff4444', fontWeight: '800', marginBottom: '15px' }}>{PANIC_TECHNIQUES[panicIndex].name}</h3>
+              {PANIC_TECHNIQUES[panicIndex].steps.map((s, i) => (
+                <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '12px', fontSize: '0.9rem', color: '#eee' }}>
+                  <div style={{ color: '#ff4444' }}>{i + 1}.</div>
+                  <div>{s}</div>
+                </div>
+              ))}
+              <div style={{ marginTop: '20px', padding: '15px', background: '#000', borderRadius: '8px', fontStyle: 'italic', fontSize: '0.8rem', color: '#ffcc00' }}>
+                "{PANIC_TECHNIQUES[panicIndex].scripture}"
+              </div>
             </div>
 
-            <textarea
-              value={answers[activePrompts[currentStep].id] || ''}
-              onChange={(e) => updateAnswer(activePrompts[currentStep].id, e.target.value)}
-              placeholder={activePrompts[currentStep].placeholder}
-              style={{
-                width: '100%',
-                height: '200px',
-                background: 'var(--bg-secondary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '16px',
-                padding: '20px',
-                color: 'var(--text-primary)',
-                fontSize: '1rem',
-                outline: 'none',
-                resize: 'none',
-                marginBottom: '24px'
-              }}
-            />
-
-            <button
-              onClick={handleNext}
-              disabled={!answers[activePrompts[currentStep].id]}
-              style={{
-                width: '100%',
-                padding: '18px',
-                borderRadius: '16px',
-                background: view === 'morning' ? 'var(--accent-gold)' : 'var(--accent-blue)',
-                color: '#000',
-                fontWeight: '600',
-                fontSize: '1.05rem',
-                opacity: !answers[activePrompts[currentStep].id] ? 0.5 : 1
-              }}
-            >
-              {currentStep === activePrompts.length - 1 ? 'Finish Protocol' : 'Continue'}
-            </button>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button
+                onClick={() => setPanicIndex((panicIndex + 1) % PANIC_TECHNIQUES.length)}
+                style={{ flex: 1, padding: '15px', border: '1px solid #444', color: '#fff', borderRadius: '8px', fontWeight: 'bold' }}
+              >
+                NEXT TECHNIQUE
+              </button>
+              <button
+                onClick={() => setView('home')}
+                style={{ flex: 1, padding: '15px', background: '#fff', color: '#000', borderRadius: '8px', fontWeight: 'bold' }}
+              >
+                I AM STABLE
+              </button>
+            </div>
           </motion.div>
         )}
 
         {view === 'summary' && (
-          <motion.div
-            key="summary"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="view"
-            style={{ textAlign: 'center', padding: '40px 0' }}
-          >
-            <div style={{ color: 'var(--accent-gold)', marginBottom: '24px' }}><CheckCircle size={80} strokeWidth={1} style={{ margin: '0 auto' }} /></div>
-            <h2 style={{ fontSize: '2rem', marginBottom: '16px' }}>Grounded.</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '40px', lineHeight: '1.6' }}>
-              You have confronted the reality of your choice. {view === 'morning' ? "Now, leave the bed. The day belongs to you." : "Return to your work with a sound mind."}
-            </p>
+          <motion.div key="summary" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ textAlign: 'center', paddingTop: '50px' }}>
+            <CheckCircle2 size={80} color="#00ff00" style={{ margin: '0 auto 20px' }} />
+            <h2 style={{ fontSize: '2.5rem', fontWeight: '900', marginBottom: '10px' }}>VICTORY.</h2>
+            <p style={{ color: '#666', marginBottom: '40px' }}>You chose the Master. You chose Reality. You chose Her.</p>
             <button
-              onClick={reset}
-              style={{ padding: '14px 28px', borderRadius: '100px', border: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}
+              onClick={() => setView('home')}
+              style={{ padding: '15px 40px', background: '#fff', color: '#000', borderRadius: '100px', fontWeight: 'bold' }}
             >
-              Return Home
+              RETURN TO COMMAND
             </button>
-          </motion.div>
-        )}
-
-        {view === 'stats' && (
-          <motion.div
-            key="stats"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="view"
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '30px' }}>
-              <button onClick={() => setView('home')} style={{ color: 'var(--text-secondary)' }}><ChevronLeft size={24} /></button>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: '500' }}>Pattern Analysis</h2>
-            </div>
-
-            <div className="glass" style={{ padding: '24px', borderRadius: '20px', marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '0.9rem', color: 'var(--accent-gold)', marginBottom: '12px', textTransform: 'uppercase' }}>Current Insights</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5' }}>
-                You are currently in the <strong>"Observation Phase"</strong>. Every time you complete a protocol, Antigravity logs the internal trigger (e.g., "Escapism", "Lack of Motivation").
-              </p>
-            </div>
-
-            <div style={{ padding: '0 10px' }}>
-              <h3 style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>Your Core Theories</h3>
-              {[
-                { name: "Morning Habit", status: "Active" },
-                { name: "Work Rut Escape", status: "Active" },
-                { name: "Fantasy Avoidance", status: "Active" }
-              ].map((t, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border-color)' }}>
-                  <span style={{ fontSize: '0.9rem' }}>{t.name}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)' }}>{t.status}</span>
-                </div>
-              ))}
-            </div>
-
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.7rem', marginTop: '20px', fontStyle: 'italic' }}>
-              "He who is faithful in a very little is faithful also in much." — Luke 16:10
-            </p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <footer style={{ marginTop: 'auto', padding: '40px 0 20px', textAlign: 'center' }}>
-        <p style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', letterSpacing: '1px', textTransform: 'uppercase' }}>Built for Self-Control & Reality</p>
+      <footer style={{ marginTop: 'auto', padding: '40px 0 10px', textAlign: 'center', opacity: 0.3 }}>
+        <p style={{ fontSize: '0.6rem', letterSpacing: '2px' }}>FOR THE MAN YOU ARE BECOMING</p>
       </footer>
 
       <style jsx>{`
-        .glass:active {
-          transform: scale(0.98);
+        .streak-unit {
+          text-align: center;
+          min-width: 60px;
         }
-        button:disabled {
-          cursor: not-allowed;
+        .num {
+          font-size: 2.5rem;
+          font-weight: 900;
+          line-height: 1;
+        }
+        .label {
+          font-size: 0.6rem;
+          color: #666;
+          font-weight: bold;
+          letter-spacing: 1px;
+        }
+        button:active {
+          transform: scale(0.97);
         }
       `}</style>
     </div>
